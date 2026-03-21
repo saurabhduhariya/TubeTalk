@@ -38,7 +38,7 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
         damping: 25,
         opacity: { duration: 0.4 }
       }}
-      className="w-full sm:w-[420px] h-screen flex flex-col bg-[#050505] border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      className="w-full h-full flex flex-col bg-[#050505] border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
       
       {/* Subtle background glow effects removed for purely dark aesthetic */}
 

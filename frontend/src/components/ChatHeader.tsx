@@ -12,7 +12,9 @@ export function ChatHeader({ url }: { url: string }) {
       className="flex items-center justify-between px-6 py-4 border-b border-glass-border bg-[#050505] z-10">
       
       <div className="flex items-center gap-3">
-        <button className="p-1.5 rounded-full hover:bg-glass-hover transition-colors text-white/70 hover:text-white cursor-pointer">
+        <button 
+          onClick={() => window.close()}
+          className="p-1.5 rounded-full hover:bg-glass-hover transition-colors text-white/70 hover:text-white cursor-pointer">
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <div className="flex flex-col">

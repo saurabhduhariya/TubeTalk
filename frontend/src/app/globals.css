@@ -14,8 +14,8 @@
 body {
   margin: 0;
   padding: 0;
-  width: 400px; /* Fixed width for the browser popup */
-  height: 550px; /* Fixed height */
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   background-color: #050505;
   color: white;
