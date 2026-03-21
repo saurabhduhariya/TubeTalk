@@ -5,14 +5,20 @@
   "description": "Chat with YouTube videos using LangChain and Pinecone.",
   "permissions": [
     "activeTab",
-    "tabs"
+    "tabs",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://www.youtube.com/*",
     "http://localhost:8000/*"
   ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "action": {
-    "default_popup": "index.html",
     "default_title": "Open YT Chat"
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }
