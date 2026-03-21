@@ -1,4 +1,15 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --color-glass: rgba(255, 255, 255, 0.01);
+  --color-glass-hover: rgba(255, 255, 255, 0.03);
+  --color-glass-border: rgba(255, 255, 255, 0.03);
+  --color-accent-cyan: #00d4ff;
+  --color-accent-purple: #a78bfa;
+  --font-sans: "Inter", sans-serif;
+  --background-image-glass-gradient: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+}
 
 body {
   margin: 0;
@@ -6,11 +17,38 @@ body {
   width: 400px; /* Fixed width for the browser popup */
   height: 550px; /* Fixed height */
   overflow: hidden;
-  background-color: #0f172a; /* Tailwind slate-900 */
-  color: #f8fafc;
+  background-color: #050505;
+  color: white;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Hide scrollbar for a cleaner look but keep functionality */
+/* Custom Scrollbar for Chat Area */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar for quick actions but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Original scrollbar hide */
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
 }

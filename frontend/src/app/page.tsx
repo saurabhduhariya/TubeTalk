@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { TubeTalkSidebar } from '../components/TubeTalkSidebar';
 
 type Message = { role: "user" | "bot"; text: string };
 
@@ -9,7 +10,6 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [chat, setChat] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // 1. Auto-fetch the YouTube URL when the popup opens
   useEffect(() => {
@@ -47,11 +47,6 @@ export default function Home() {
     }
   }, []);
 
-  // 2. Auto-scroll to the bottom of the chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chat, loading]);
-
   const askQuestion = async () => {
     if (!question.trim() || !url.includes("youtube.com/watch")) return;
 
@@ -79,57 +74,15 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col h-screen p-4 bg-slate-900 text-slate-200">
-      {/* Header */}
-      <header className="pb-3 mb-3 border-b border-slate-700 flex justify-between items-center">
-        <h1 className="text-lg font-bold text-emerald-400">YT Chatbot</h1>
-        <span className="text-xs px-2 py-1 bg-slate-800 rounded text-slate-400">
-          {url ? "Connected" : "Waiting for video..."}
-        </span>
-      </header>
-
-      {/* Chat History */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-hide">
-        {chat.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] p-3 rounded-lg text-sm leading-relaxed ${
-              msg.role === "user" 
-                ? "bg-emerald-600 text-white rounded-br-none" 
-                : "bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none"
-            }`}>
-              {msg.text}
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-slate-800 text-slate-400 border border-slate-700 p-3 rounded-lg rounded-bl-none text-sm animate-pulse">
-              Analyzing transcript...
-            </div>
-          </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="mt-4 pt-3 border-t border-slate-700 flex gap-2">
-        <input
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && askQuestion()}
-          placeholder="Ask something..."
-          disabled={!url || loading}
-          className="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 disabled:opacity-50"
-        />
-        <button
-          onClick={askQuestion}
-          disabled={!url || loading || !question.trim()}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        >
-          ↵
-        </button>
-      </div>
+    <main className="w-full h-full flex overflow-hidden">
+      <TubeTalkSidebar 
+        chat={chat}
+        loading={loading}
+        question={question}
+        setQuestion={setQuestion}
+        askQuestion={askQuestion}
+        url={url}
+      />
     </main>
   );
 }
