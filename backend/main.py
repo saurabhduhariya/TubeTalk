@@ -45,6 +45,9 @@ class ChatRequest(BaseModel):
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index_name = os.getenv("PINECONE_INDEX_NAME")
 
+# Track videos we've already indexed in this session to avoid Pinecone's delayed stats issue
+indexed_videos = set()
+
 # 2. LOCAL OPEN SOURCE EMBEDDING SETUP
 # Outputs exactly 768 dimensions for Pinecone. trust_remote_code is MANDATORY here.
 embeddings = HuggingFaceEmbeddings(
@@ -64,6 +67,12 @@ def get_vector_store(video_url: str):
         namespace=video_id
     )
 
+    # 1. Fast check: Have we processed this video since the server started?
+    if video_id in indexed_videos:
+        print(f"--- Video {video_id} already indexed (Local Cache Hit) ---")
+        return vectorstore
+
+    # 2. Fallback check: Check Pinecone directly (note: can be delayed by a few minutes)
     index = pc.Index(index_name)
     stats = index.describe_index_stats()
     
@@ -78,9 +87,12 @@ def get_vector_store(video_url: str):
             docs = text_splitter.split_documents(data)
             
             vectorstore.add_documents(docs)
+            indexed_videos.add(video_id) # Mark as done!
             print(f"--- Successfully Uploaded to Pinecone ---")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+    else:
+        indexed_videos.add(video_id) # It was already in Pinecone from an older session
     
     return vectorstore
 

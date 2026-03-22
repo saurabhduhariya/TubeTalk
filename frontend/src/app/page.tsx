@@ -47,19 +47,20 @@ export default function Home() {
     }
   }, []);
 
-  const askQuestion = async () => {
-    if (!question.trim() || !url.includes("youtube.com/watch")) return;
+  const askQuestion = async (overrideQuestion?: string) => {
+    const q = typeof overrideQuestion === 'string' ? overrideQuestion : question;
+    if (!q.trim() || !url.includes("youtube.com/watch")) return;
 
-    const userMsg: Message = { role: "user", text: question };
+    const userMsg: Message = { role: "user", text: q };
     setChat((prev) => [...prev, userMsg]);
-    setQuestion("");
+    if (typeof overrideQuestion !== 'string') setQuestion("");
     setLoading(true);
 
     try {
       const response = await fetch("http://localhost:8000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, question }),
+        body: JSON.stringify({ url, question: q }),
       });
 
       if (!response.ok) throw new Error("Backend error");

@@ -17,7 +17,7 @@ interface TubeTalkSidebarProps {
   loading: boolean;
   question: string;
   setQuestion: (val: string) => void;
-  askQuestion: () => void;
+  askQuestion: (overrideQuestion?: string) => void;
   url: string;
 }
 
@@ -93,7 +93,7 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
       </div>
 
       <div className="relative z-10">
-        <QuickActions />
+        <QuickActions askQuestion={askQuestion} loading={loading} />
         <ChatInput 
           question={question}
           setQuestion={setQuestion}
