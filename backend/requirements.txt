@@ -1,10 +1,10 @@
 fastapi
 uvicorn
 python-dotenv
-langchain-google-genai
+langchain-groq
 langchain-community
 langchain-pinecone
-langchain-huggingface
+langchain-voyageai
 langchain-text-splitters
 langgraph
 langchain-tavily

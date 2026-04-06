@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-from app.config import llm, tavily_tool
+from app.config import fast_llm, reasoning_llm, tavily_tool
 from app.graph.state import GraphState
 from app.services.video import get_vector_store, format_docs
 
@@ -31,7 +31,7 @@ Question: {question}
 Category:"""
     )
 
-    chain = router_prompt | llm | StrOutputParser()
+    chain = router_prompt | fast_llm | StrOutputParser()
     result = chain.invoke({"question": state["question"]}).strip().lower().strip('"').strip("'")
 
     # Normalize to one of the three valid routes
@@ -108,7 +108,7 @@ Document: {document}
 Relevant:"""
     )
 
-    grader_chain = grader_prompt | llm | StrOutputParser()
+    grader_chain = grader_prompt | fast_llm | StrOutputParser()
 
     relevant_docs: List[Document] = []
     for doc in state["documents"]:
@@ -145,7 +145,7 @@ Original question: {question}
 Rewritten question:"""
     )
 
-    chain = rewriter_prompt | llm | StrOutputParser()
+    chain = rewriter_prompt | fast_llm | StrOutputParser()
     new_question = chain.invoke({"question": state["question"]}).strip()
     new_loop_count = state["loop_count"] + 1
 
@@ -171,7 +171,7 @@ User message: {question}
 
 Response:"""
         )
-        chain = casual_prompt | llm | StrOutputParser()
+        chain = casual_prompt | reasoning_llm | StrOutputParser()
         generation = chain.invoke({"question": state["question"]})
     else:
         context = format_docs(state.get("documents", []))
@@ -191,7 +191,7 @@ Question: {question}
 
 Answer:"""
         )
-        chain = rag_prompt | llm | StrOutputParser()
+        chain = rag_prompt | reasoning_llm | StrOutputParser()
         generation = chain.invoke({
             "source": source_label,
             "context": context,
