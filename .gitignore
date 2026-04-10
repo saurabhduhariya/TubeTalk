@@ -1,4 +1,6 @@
 # ---- General & Backend ----
+.venv/
+venv/
 .env
 .env*
 node_modules/

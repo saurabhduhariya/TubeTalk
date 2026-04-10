@@ -11,3 +11,4 @@ langgraph
 langchain-tavily
 pinecone
 youtube-transcript-api
+yt-dlp

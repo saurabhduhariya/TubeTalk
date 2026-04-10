@@ -287,10 +287,13 @@ Response:"""
 
         rag_prompt = ChatPromptTemplate.from_template(
             """You are TubeTalk, a helpful YouTube video assistant. Answer the user's question
-based strictly on the context below. The context may include refined video transcript knowledge
+based strictly on the context below. The context may include video metadata, refined video transcript knowledge
 and/or web search results.
 
 If the context does not contain enough information, say so honestly. Do not make up information.
+
+Video Metadata:
+{metadata}
 
 Context:
 {context}
@@ -301,6 +304,7 @@ Answer:"""
         )
         chain = rag_prompt | reasoning_llm | StrOutputParser()
         generation = chain.invoke({
+            "metadata": state.get("metadata", ""),
             "context": context,
             "question": state["question"],
         })

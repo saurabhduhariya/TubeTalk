@@ -1,4 +1,5 @@
 from typing import List
+import yt_dlp
 
 from fastapi import HTTPException
 from langchain_community.document_loaders import YoutubeLoader
@@ -58,3 +59,29 @@ def format_docs(docs: List[Document]) -> str:
     if not docs:
         return "No relevant context found."
     return "\n\n".join(doc.page_content for doc in docs)
+
+def get_video_metadata(video_url: str) -> str:
+    """Extract the YouTube video title, description, and chapters."""
+    try:
+        ydl_opts = {'skip_download': True, 'quiet': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            
+        title = info.get('title', 'Unknown Title')
+        description = info.get('description', 'No description available.')
+        chapters = info.get('chapters')
+        
+        metadata_str = f"Title: {title}\nDescription: {description}\n"
+        
+        if chapters:
+            metadata_str += "\nChapters:\n"
+            for chapter in chapters:
+                start_time = int(chapter.get('start_time', 0))
+                title = chapter.get('title', 'Untitled')
+                minutes, seconds = divmod(start_time, 60)
+                metadata_str += f"[{minutes:02d}:{seconds:02d}] {title}\n"
+                
+        return metadata_str
+    except Exception as e:
+        print(f"Error extracting metadata: {e}")
+        return "Metadata extraction failed."

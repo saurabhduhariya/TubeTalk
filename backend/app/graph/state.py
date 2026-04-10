@@ -8,6 +8,7 @@ class GraphState(TypedDict):
     """State flowing through the Hybrid CRAG + Self-RAG pipeline."""
     question: str              # User's question
     video_url: str             # YouTube URL → Pinecone namespace key
+    metadata: str              # Extracted video metadata (Title, Description, Chapters)
     route: str                 # "video_rag" | "web_search" | "casual"
     documents: List[Document]  # Raw retrieved documents from Pinecone
     retrieval_grade: str       # "correct" | "ambiguous" | "incorrect" (CRAG)

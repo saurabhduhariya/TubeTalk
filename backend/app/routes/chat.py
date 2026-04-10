@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from app.models import ChatRequest, ChatResponse
 from app.graph.state import GraphState
 from app.graph.builder import rag_graph
+from app.services.video import get_video_metadata
 
 router = APIRouter()
 
@@ -16,6 +17,7 @@ async def chat_with_video(request: ChatRequest):
         initial_state: GraphState = {
             "question": request.question,
             "video_url": request.url,
+            "metadata": get_video_metadata(request.url),
             "route": "",
             "documents": [],
             "retrieval_grade": "",
