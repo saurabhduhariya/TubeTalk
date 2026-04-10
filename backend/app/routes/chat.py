@@ -11,15 +11,20 @@ router = APIRouter()
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_video(request: ChatRequest):
-    """Run the LangGraph Self-RAG pipeline and return the generated answer."""
+    """Run the Hybrid CRAG + Self-RAG pipeline and return the generated answer."""
     try:
         initial_state: GraphState = {
             "question": request.question,
-            "generation": "",
-            "documents": [],
-            "loop_count": 0,
             "video_url": request.url,
             "route": "",
+            "documents": [],
+            "retrieval_grade": "",
+            "refined_knowledge": "",
+            "web_knowledge": "",
+            "generation": "",
+            "generation_retries": 0,
+            "hallucination_result": "",
+            "loop_count": 0,
         }
 
         print(f"\n{'=' * 60}")

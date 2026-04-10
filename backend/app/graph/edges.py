@@ -1,4 +1,4 @@
-"""Conditional edge functions that control the graph's routing logic."""
+"""Conditional edge functions for the Hybrid CRAG + Self-RAG pipeline."""
 
 from app.graph.state import GraphState
 
@@ -9,19 +9,36 @@ def decide_route(state: GraphState) -> str:
     if route == "casual":
         return "generate"
     elif route == "web_search":
-        return "web_search"
+        return "web_search_only"
     else:
         return "retrieve"
 
 
-def decide_after_grading(state: GraphState) -> str:
-    """After grade_documents: decide whether to generate, rewrite, or give up."""
-    if state["documents"]:
-        return "generate"
+def decide_after_evaluation(state: GraphState) -> str:
+    """After evaluate_retrieval: route based on CRAG 3-way verdict.
 
-    # No relevant docs — should we retry?
-    if state["route"] == "video_rag" and state["loop_count"] < 2:
-        return "rewrite_query"
+    - correct   → refine only
+    - ambiguous → refine (web search will run after refine via a separate edge)
+    - incorrect → corrective web search only
+    """
+    grade = state["retrieval_grade"]
 
-    # Loop cap hit or web_search route — just generate with empty context
-    return "generate"
+    if grade == "correct":
+        return "refine_only"
+    elif grade == "incorrect":
+        return "search_only"
+    else:  # ambiguous
+        return "refine_then_search"
+
+
+def decide_after_hallucination(state: GraphState) -> str:
+    """After hallucination_check: decide whether to regenerate or finish."""
+    result = state.get("hallucination_result", "grounded")
+    retries = state.get("generation_retries", 0)
+
+    if result == "grounded":
+        return "end"
+    elif retries < 2:
+        return "regenerate"
+    else:
+        return "end"

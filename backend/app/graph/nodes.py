@@ -1,4 +1,4 @@
-"""LangGraph node functions for the Self-RAG + Web Search pipeline."""
+"""LangGraph node functions for the Hybrid CRAG + Self-RAG pipeline."""
 
 from typing import List
 
@@ -11,7 +11,11 @@ from app.graph.state import GraphState
 from app.services.video import get_vector_store, format_docs
 
 
-# ── Node 1: Route Question ───────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  KEPT NODES (from Self-RAG)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Route Question ────────────────────────────────────────────────────────────
 
 def route_question(state: GraphState) -> dict:
     """Use LLM to classify the question into one of three routes."""
@@ -34,7 +38,6 @@ Category:"""
     chain = router_prompt | fast_llm | StrOutputParser()
     result = chain.invoke({"question": state["question"]}).strip().lower().strip('"').strip("'")
 
-    # Normalize to one of the three valid routes
     if "video" in result or "rag" in result:
         route = "video_rag"
     elif "web" in result or "search" in result:
@@ -42,13 +45,13 @@ Category:"""
     elif "casual" in result:
         route = "casual"
     else:
-        route = "video_rag"  # Default to video RAG
+        route = "video_rag"
 
     print(f"    Route decided: {route}")
     return {"route": route}
 
 
-# ── Node 2: Retrieve from Pinecone ───────────────────────────────────────────
+# ── Retrieve from Pinecone ────────────────────────────────────────────────────
 
 def retrieve(state: GraphState) -> dict:
     """Fetch documents from Pinecone for the current question."""
@@ -62,102 +65,198 @@ def retrieve(state: GraphState) -> dict:
     return {"documents": documents}
 
 
-# ── Node 3: Web Search via Tavily ─────────────────────────────────────────────
+# ── Web Search Only (direct web_search route) ────────────────────────────────
 
-def web_search(state: GraphState) -> dict:
-    """Search the web using Tavily and wrap results as Documents."""
-    print("--- NODE: web_search ---")
+def web_search_only(state: GraphState) -> dict:
+    """Search the web using Tavily — used for the direct web_search route."""
+    print("--- NODE: web_search_only ---")
 
     try:
         results = tavily_tool.invoke(state["question"])
-        # TavilySearch returns a list of dicts or a string; normalize to docs
         if isinstance(results, list):
             documents = [
                 Document(
                     page_content=r.get("content", "") if isinstance(r, dict) else str(r),
-                    metadata={"source": r.get("url", "tavily_search") if isinstance(r, dict) else "tavily_search"},
+                    metadata={"source": r.get("url", "tavily") if isinstance(r, dict) else "tavily"},
                 )
                 for r in results
                 if (isinstance(r, dict) and r.get("content")) or (isinstance(r, str) and r)
             ]
         else:
-            documents = [Document(page_content=str(results), metadata={"source": "tavily_search"})]
+            documents = [Document(page_content=str(results), metadata={"source": "tavily"})]
     except Exception as e:
         print(f"    Tavily search failed: {e}")
         documents = []
 
-    print(f"    Web search returned {len(documents)} documents")
-    return {"documents": documents}
+    web_knowledge = "\n\n".join(doc.page_content for doc in documents) if documents else ""
+    print(f"    Web search returned {len(documents)} results")
+    return {"web_knowledge": web_knowledge}
 
 
-# ── Node 4: Grade Documents ──────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  CRAG NODES
+# ══════════════════════════════════════════════════════════════════════════════
 
-def grade_documents(state: GraphState) -> dict:
-    """Grade each document for relevance; keep only 'yes' docs."""
-    print("--- NODE: grade_documents ---")
+# ── Evaluate Retrieval (CRAG: Retrieval Evaluator) ────────────────────────────
 
-    grader_prompt = ChatPromptTemplate.from_template(
-        """You are a strict relevance grader. Given a user question and a retrieved document,
-decide if the document contains information relevant to answering the question.
+def evaluate_retrieval(state: GraphState) -> dict:
+    """Grade ALL retrieved docs in a SINGLE LLM call as correct/ambiguous/incorrect."""
+    print("--- NODE: evaluate_retrieval ---")
 
-Respond with ONLY "yes" or "no". Nothing else.
-
-Question: {question}
-Document: {document}
-
-Relevant:"""
+    docs_text = "\n\n".join(
+        f"[Document {i+1}]: {doc.page_content[:500]}"
+        for i, doc in enumerate(state["documents"])
     )
 
-    grader_chain = grader_prompt | fast_llm | StrOutputParser()
+    eval_prompt = ChatPromptTemplate.from_template(
+        """You are a retrieval evaluator. Given a user question and a set of retrieved documents,
+evaluate whether the documents collectively contain enough information to answer the question.
 
-    relevant_docs: List[Document] = []
+Respond with EXACTLY ONE word:
+- "correct" — The documents contain sufficient, relevant information to fully answer the question.
+- "ambiguous" — The documents contain some relevant information, but it may be incomplete or partially off-topic.
+- "incorrect" — The documents are mostly irrelevant and do not help answer the question.
+
+Question: {question}
+
+Retrieved Documents:
+{documents}
+
+Verdict:"""
+    )
+
+    chain = eval_prompt | fast_llm | StrOutputParser()
+    result = chain.invoke({
+        "question": state["question"],
+        "documents": docs_text,
+    }).strip().lower().strip('"').strip("'")
+
+    # Normalize
+    if "correct" in result and "incorrect" not in result:
+        grade = "correct"
+    elif "incorrect" in result:
+        grade = "incorrect"
+    elif "ambiguous" in result:
+        grade = "ambiguous"
+    else:
+        grade = "ambiguous"  # Default to ambiguous (safe fallback)
+
+    print(f"    Retrieval grade: {grade}")
+    return {"retrieval_grade": grade}
+
+
+# ── Refine Knowledge (CRAG: Decompose → Filter → Recompose) ──────────────────
+
+def refine_knowledge(state: GraphState) -> dict:
+    """Decompose docs into strips, filter relevant ones via LLM, recompose."""
+    print("--- NODE: refine_knowledge ---")
+
+    # Step 1: Decompose — split all docs into numbered sentence strips
+    strips: List[str] = []
     for doc in state["documents"]:
-        score = grader_chain.invoke({
-            "question": state["question"],
-            "document": doc.page_content,
-        }).strip().lower()
+        sentences = [s.strip() for s in doc.page_content.replace("\n", " ").split(".") if s.strip()]
+        strips.extend(sentences)
 
-        if "yes" in score:
-            relevant_docs.append(doc)
-            print(f"    ✓ Doc graded RELEVANT (source: {doc.metadata.get('source', 'pinecone')})")
-        else:
-            print("    ✗ Doc graded IRRELEVANT")
+    if not strips:
+        print("    No strips to refine")
+        return {"refined_knowledge": ""}
 
-    print(f"    {len(relevant_docs)}/{len(state['documents'])} docs passed grading")
-    return {"documents": relevant_docs}
+    # Build numbered list for the LLM
+    numbered_strips = "\n".join(f"[{i}] {strip}" for i, strip in enumerate(strips))
+
+    # Step 2: Filter — single batched LLM call
+    filter_prompt = ChatPromptTemplate.from_template(
+        """You are a knowledge filter. Given a question and a list of numbered text strips
+extracted from documents, identify which strips are relevant to answering the question.
+
+Return ONLY a comma-separated list of the relevant strip numbers. If none are relevant, return "none".
+Do not include any other text.
+
+Question: {question}
+
+Strips:
+{strips}
+
+Relevant strip numbers:"""
+    )
+
+    chain = filter_prompt | fast_llm | StrOutputParser()
+    result = chain.invoke({
+        "question": state["question"],
+        "strips": numbered_strips,
+    }).strip()
+
+    # Step 3: Recompose — join the relevant strips
+    if "none" in result.lower():
+        refined = ""
+        print("    No strips passed filtering")
+    else:
+        try:
+            # Parse comma-separated numbers
+            indices = [int(n.strip().strip("[]")) for n in result.split(",") if n.strip().strip("[]").isdigit()]
+            relevant_strips = [strips[i] for i in indices if i < len(strips)]
+            refined = ". ".join(relevant_strips) + "." if relevant_strips else ""
+            print(f"    Refined {len(relevant_strips)}/{len(strips)} strips")
+        except (ValueError, IndexError):
+            # If parsing fails, use all strips as fallback
+            refined = ". ".join(strips) + "."
+            print(f"    Strip parsing failed — using all {len(strips)} strips")
+
+    return {"refined_knowledge": refined}
 
 
-# ── Node 5: Rewrite Query ────────────────────────────────────────────────────
+# ── Corrective Web Search (CRAG: Rewrite → Search → Select) ──────────────────
 
-def rewrite_query(state: GraphState) -> dict:
-    """Rewrite the question for better semantic search retrieval."""
-    print("--- NODE: rewrite_query ---")
+def corrective_web_search(state: GraphState) -> dict:
+    """Rewrite query for web, search Tavily, store as external knowledge."""
+    print("--- NODE: corrective_web_search ---")
 
-    rewriter_prompt = ChatPromptTemplate.from_template(
-        """You are a query rewriter. The original question failed to retrieve relevant documents
-from a YouTube video transcript. Rewrite it to improve semantic search retrieval.
+    # Step 1: Rewrite query for web search
+    rewrite_prompt = ChatPromptTemplate.from_template(
+        """You are a search query optimizer. The user asked a question about a YouTube video,
+but the video transcript did not contain relevant information.
 
-Keep the core intent but use different words, synonyms, or rephrase for clarity.
-Return ONLY the rewritten question, nothing else.
+Rewrite the question as a concise web search query that would find the answer from general web sources.
+Return ONLY the search query, nothing else.
 
 Original question: {question}
 
-Rewritten question:"""
+Search query:"""
     )
 
-    chain = rewriter_prompt | fast_llm | StrOutputParser()
-    new_question = chain.invoke({"question": state["question"]}).strip()
-    new_loop_count = state["loop_count"] + 1
+    chain = rewrite_prompt | fast_llm | StrOutputParser()
+    search_query = chain.invoke({"question": state["question"]}).strip()
+    print(f"    Rewritten search query: '{search_query}'")
 
-    print(f"    Rewritten: '{state['question']}' → '{new_question}'")
-    print(f"    Loop count: {new_loop_count}/2")
-    return {"question": new_question, "loop_count": new_loop_count}
+    # Step 2: Search with Tavily
+    try:
+        results = tavily_tool.invoke(search_query)
+        if isinstance(results, list):
+            contents = [
+                r.get("content", "") if isinstance(r, dict) else str(r)
+                for r in results
+                if (isinstance(r, dict) and r.get("content")) or (isinstance(r, str) and r)
+            ]
+        else:
+            contents = [str(results)] if results else []
+    except Exception as e:
+        print(f"    Tavily search failed: {e}")
+        contents = []
+
+    # Step 3: Store as external knowledge
+    web_knowledge = "\n\n".join(contents) if contents else ""
+    print(f"    Web search returned {len(contents)} results")
+    return {"web_knowledge": web_knowledge}
 
 
-# ── Node 6: Generate Answer ──────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+#  GENERATION + SELF-RAG NODES
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Generate Answer ───────────────────────────────────────────────────────────
 
 def generate(state: GraphState) -> dict:
-    """Generate the final answer."""
+    """Generate the final answer using refined + web knowledge."""
     print("--- NODE: generate ---")
 
     if state.get("route") == "casual":
@@ -174,14 +273,23 @@ Response:"""
         chain = casual_prompt | reasoning_llm | StrOutputParser()
         generation = chain.invoke({"question": state["question"]})
     else:
-        context = format_docs(state.get("documents", []))
-        source_label = (
-            "video transcript" if state.get("route") == "video_rag" else "web search results"
-        )
+        # Build context from available knowledge sources
+        internal = state.get("refined_knowledge", "")
+        external = state.get("web_knowledge", "")
+
+        context_parts = []
+        if internal:
+            context_parts.append(f"Video Transcript Knowledge:\n{internal}")
+        if external:
+            context_parts.append(f"Web Search Knowledge:\n{external}")
+
+        context = "\n\n---\n\n".join(context_parts) if context_parts else "No relevant context found."
 
         rag_prompt = ChatPromptTemplate.from_template(
             """You are TubeTalk, a helpful YouTube video assistant. Answer the user's question
-based strictly on the {source} context below.
+based strictly on the context below. The context may include refined video transcript knowledge
+and/or web search results.
+
 If the context does not contain enough information, say so honestly. Do not make up information.
 
 Context:
@@ -193,10 +301,81 @@ Answer:"""
         )
         chain = rag_prompt | reasoning_llm | StrOutputParser()
         generation = chain.invoke({
-            "source": source_label,
             "context": context,
             "question": state["question"],
         })
 
     print(f"    Generation complete ({len(generation)} chars)")
     return {"generation": generation}
+
+
+# ── Hallucination Check (Self-RAG) ────────────────────────────────────────────
+
+def hallucination_check(state: GraphState) -> dict:
+    """Check if the generated answer is grounded in the provided context."""
+    print("--- NODE: hallucination_check ---")
+
+    # Skip hallucination check for casual route
+    if state.get("route") == "casual":
+        print("    Skipping (casual route)")
+        return {
+            "generation_retries": state.get("generation_retries", 0),
+            "hallucination_result": "grounded",
+        }
+
+    internal = state.get("refined_knowledge", "")
+    external = state.get("web_knowledge", "")
+
+    context_parts = []
+    if internal:
+        context_parts.append(internal)
+    if external:
+        context_parts.append(external)
+
+    context = "\n\n".join(context_parts) if context_parts else ""
+
+    if not context:
+        print("    No context to check against — skipping")
+        return {
+            "generation_retries": state.get("generation_retries", 0),
+            "hallucination_result": "grounded",
+        }
+
+    check_prompt = ChatPromptTemplate.from_template(
+        """You are a hallucination detector. Determine if the given answer is fully grounded
+in (supported by) the provided context. The answer should not contain claims that are not
+present in or inferable from the context.
+
+Respond with ONLY "grounded" or "not_grounded". Nothing else.
+
+Context:
+{context}
+
+Answer:
+{answer}
+
+Verdict:"""
+    )
+
+    chain = check_prompt | fast_llm | StrOutputParser()
+    result = chain.invoke({
+        "context": context,
+        "answer": state["generation"],
+    }).strip().lower()
+
+    is_grounded = "grounded" in result and "not" not in result
+    retries = state.get("generation_retries", 0)
+
+    if is_grounded:
+        print("    ✓ Answer is GROUNDED")
+        return {
+            "generation_retries": retries,
+            "hallucination_result": "grounded",
+        }
+    else:
+        retries += 1
+        print(f"    ✗ Answer is NOT GROUNDED (retry {retries}/2)")
+        return {
+            "generation_retries": retries,
+            "hallucination_result": "not_grounded",
+        }
