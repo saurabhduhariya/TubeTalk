@@ -1,5 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @theme {
   --color-glass: rgba(255, 255, 255, 0.01);
@@ -7,7 +7,7 @@
   --color-glass-border: rgba(255, 255, 255, 0.03);
   --color-accent-cyan: #00d4ff;
   --color-accent-purple: #a78bfa;
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "JetBrains Mono", monospace;
   --background-image-glass-gradient: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
 }
 

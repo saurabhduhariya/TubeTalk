@@ -1,9 +1,9 @@
 "use client";
 import React from 'react';
-import { ChevronLeftIcon, SettingsIcon } from 'lucide-react';
+import { ChevronLeftIcon, SettingsIcon, Trash2Icon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export function ChatHeader({ url }: { url: string }) {
+export function ChatHeader({ url, clearChat }: { url: string; clearChat: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -33,6 +33,12 @@ export function ChatHeader({ url }: { url: string }) {
           
           <span className="text-xs font-medium text-white/80">{url ? "Connected" : "Waiting for video"}</span>
         </div>
+        <button 
+          onClick={clearChat}
+          title="Clear chat"
+          className="p-1.5 rounded-full hover:bg-red-500/10 transition-colors text-white/40 hover:text-red-400 cursor-pointer">
+          <Trash2Icon className="w-4 h-4" />
+        </button>
         <button className="p-1.5 rounded-full hover:bg-glass-hover transition-colors text-white/70 hover:text-white cursor-pointer">
           <SettingsIcon className="w-5 h-5" />
         </button>

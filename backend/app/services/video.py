@@ -33,7 +33,11 @@ def get_vector_store(video_url: str) -> PineconeVectorStore:
     if video_id not in stats.get("namespaces", {}):
         print(f"--- Indexing New Video: {video_id} ---")
         try:
-            loader = YoutubeLoader.from_youtube_url(video_url, add_video_info=False)
+            loader = YoutubeLoader.from_youtube_url(
+                video_url, 
+                add_video_info=False,
+                language=["en", "en-US", "en-GB", "en-IN", "hi", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh-Hans", "zh-Hant"]
+            )
             data = loader.load()
 
             text_splitter = RecursiveCharacterTextSplitter(

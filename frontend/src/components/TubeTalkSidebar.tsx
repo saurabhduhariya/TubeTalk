@@ -18,10 +18,12 @@ interface TubeTalkSidebarProps {
   question: string;
   setQuestion: (val: string) => void;
   askQuestion: (overrideQuestion?: string) => void;
+  stopGeneration: () => void;
+  clearChat: () => void;
   url: string;
 }
 
-export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuestion, url }: TubeTalkSidebarProps) {
+export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuestion, stopGeneration, clearChat, url }: TubeTalkSidebarProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
       
       {/* Subtle background glow effects removed for purely dark aesthetic */}
 
-      <ChatHeader url={url} />
+      <ChatHeader url={url} clearChat={clearChat} />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-6 pb-2 relative z-10 flex flex-col">
         <motion.div
@@ -98,6 +100,7 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
           question={question}
           setQuestion={setQuestion}
           askQuestion={askQuestion}
+          stopGeneration={stopGeneration}
           loading={loading}
           url={url}
         />
