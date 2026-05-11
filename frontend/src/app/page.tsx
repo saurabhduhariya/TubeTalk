@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TubeTalkSidebar } from '../components/TubeTalkSidebar';
+import { loadApiKeys } from '../components/SettingsModal';
 
 type Message = { role: "user" | "bot"; text: string };
 
@@ -149,9 +150,16 @@ export default function Home() {
     abortControllerRef.current = controller;
 
     try {
+      // Load user API keys from storage and send as headers
+      const userKeys = await loadApiKeys();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      for (const [key, value] of Object.entries(userKeys)) {
+        if (value) headers[`X-Api-Key-${key}`] = value;
+      }
+
       const response = await fetch("http://localhost:8000/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ url, question: q }),
         signal: controller.signal,
       });

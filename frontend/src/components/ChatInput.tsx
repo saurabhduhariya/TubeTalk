@@ -69,10 +69,5 @@ export function ChatInput({ question, setQuestion, askQuestion, stopGeneration, 
           </motion.button>
         )}
       </motion.div>
-      <div className="text-center mt-3">
-        <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">
-          TubeTalk AI • Beta
-        </span>
-      </div>
     </div>);
 }
