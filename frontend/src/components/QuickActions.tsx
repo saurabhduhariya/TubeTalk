@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { SparklesIcon, ListIcon, ClockIcon, LightbulbIcon } from 'lucide-react';
+import { SparklesIcon, ListIcon, ClockIcon, LightbulbIcon, MessageCircleIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 const actions = [
 {
@@ -26,6 +26,12 @@ const actions = [
   label: 'Explain',
   icon: LightbulbIcon,
   prompt: 'Explain the main concept of this video as if I am a beginner.'
+},
+{
+  id: 'comments',
+  label: 'Comments',
+  icon: MessageCircleIcon,
+  prompt: 'What do people think about this video? Summarize the top audience comments and reactions.'
 }];
 
 interface QuickActionsProps {

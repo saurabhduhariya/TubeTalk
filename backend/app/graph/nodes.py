@@ -276,20 +276,24 @@ Response:"""
         # Build context from available knowledge sources
         internal = state.get("refined_knowledge", "")
         external = state.get("web_knowledge", "")
+        comments = state.get("comments", "")
 
         context_parts = []
         if internal:
             context_parts.append(f"Video Transcript Knowledge:\n{internal}")
         if external:
             context_parts.append(f"Web Search Knowledge:\n{external}")
+        if comments and comments not in ("No comments available for this video.", "Comment extraction failed.", "No comments available."):
+            context_parts.append(f"YouTube Audience Comments:\n{comments}")
 
         context = "\n\n---\n\n".join(context_parts) if context_parts else "No relevant context found."
 
         rag_prompt = ChatPromptTemplate.from_template(
             """You are TubeTalk, a helpful YouTube video assistant. Answer the user's question
-based strictly on the context below. The context may include video metadata, refined video transcript knowledge
-and/or web search results.
+based strictly on the context below. The context may include video metadata, refined video transcript knowledge,
+web search results, and/or YouTube audience comments.
 
+When referencing audience comments, clearly indicate they are viewer opinions, not facts.
 If the context does not contain enough information, say so honestly. Do not make up information.
 
 Video Metadata:
@@ -329,12 +333,15 @@ def hallucination_check(state: GraphState) -> dict:
 
     internal = state.get("refined_knowledge", "")
     external = state.get("web_knowledge", "")
+    comments = state.get("comments", "")
 
     context_parts = []
     if internal:
         context_parts.append(internal)
     if external:
         context_parts.append(external)
+    if comments and comments not in ("No comments available for this video.", "Comment extraction failed.", "No comments available."):
+        context_parts.append(comments)
 
     context = "\n\n".join(context_parts) if context_parts else ""
 
