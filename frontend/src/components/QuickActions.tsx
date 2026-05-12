@@ -59,15 +59,15 @@ export function QuickActions({ askQuestion, loading }: QuickActionsProps) {
             disabled={loading}
             whileHover={{
               scale: loading ? 1 : 1.03,
-              backgroundColor: 'rgba(255,255,255,0.08)'
             }}
             whileTap={{
               scale: loading ? 1 : 0.97
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0a0a0a] border border-white/5 whitespace-nowrap transition-colors group disabled:opacity-50 disabled:cursor-not-allowed">
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
             
-            <Icon className="w-3.5 h-3.5 text-white/50 group-hover:text-accent-cyan transition-colors" />
-            <span className="text-xs font-medium text-white/70 group-hover:text-white transition-colors">
+            <Icon className="w-3.5 h-3.5 group-hover:text-accent-cyan transition-colors" style={{ color: 'var(--text-muted)' }} />
+            <span className="text-xs font-medium group-hover:text-accent-cyan transition-colors" style={{ color: 'var(--text-secondary)' }}>
               {action.label}
             </span>
           </motion.button>);

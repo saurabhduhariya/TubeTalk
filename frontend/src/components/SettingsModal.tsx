@@ -114,24 +114,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed inset-4 z-50 flex items-center justify-center pointer-events-none"
           >
-            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-[0_0_60px_rgba(0,0,0,0.8)] w-full max-w-md max-h-[85vh] overflow-hidden pointer-events-auto flex flex-col">
+            <div className="rounded-2xl shadow-[0_0_60px_rgba(0,0,0,0.8)] w-full max-w-md max-h-[85vh] overflow-hidden pointer-events-auto flex flex-col" style={{ backgroundColor: 'var(--modal-bg)', border: '1px solid var(--modal-border)' }}>
               
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+              <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-cyan/20 to-accent-purple/20 border border-white/10 flex items-center justify-center">
                     <KeyIcon className="w-4 h-4 text-accent-cyan" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-white">API Keys</h2>
-                    <p className="text-[10px] text-white/40 mt-0.5">
+                    <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>API Keys</h2>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                       {filledCount}/{API_KEY_FIELDS.length} configured
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white cursor-pointer"
+                  className="p-1.5 rounded-lg transition-colors cursor-pointer" style={{ color: 'var(--text-muted)' }}
                 >
                   <XIcon className="w-4 h-4" />
                 </button>
@@ -142,10 +142,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4 space-y-3">
                 {API_KEY_FIELDS.map((field) => (
                   <div key={field.id}>
-                    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/60 mb-1.5 uppercase tracking-wider">
+                    <label className="flex items-center gap-1.5 text-[11px] font-semibold mb-1.5 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                       {field.label}
                       {!field.required && (
-                        <span className="text-[9px] text-white/30 normal-case tracking-normal font-normal">(optional)</span>
+                        <span className="text-[9px] normal-case tracking-normal font-normal" style={{ color: 'var(--text-faint)' }}>(optional)</span>
                       )}
                     </label>
                     <div className="relative">
@@ -154,11 +154,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         value={keys[field.id] || ''}
                         onChange={(e) => handleChange(field.id, e.target.value)}
                         placeholder={field.placeholder}
-                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2.5 text-[12px] text-white/90 placeholder:text-white/20 outline-none focus:border-accent-cyan/40 focus:shadow-[0_0_12px_rgba(0,212,255,0.08)] transition-all duration-200 pr-10"
+                        className="w-full rounded-lg px-3 py-2.5 text-[12px] outline-none focus:border-accent-cyan/40 focus:shadow-[0_0_12px_rgba(0,212,255,0.08)] transition-all duration-200 pr-10"
+                        style={{ backgroundColor: 'var(--field-bg)', border: '1px solid var(--field-border)', color: 'var(--text-primary)' }}
                       />
                       <button
                         onClick={() => toggleVisibility(field.id)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/30 hover:text-white/60 transition-colors cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors cursor-pointer" style={{ color: 'var(--text-muted)' }}
                       >
                         {visibleFields[field.id] ? (
                           <EyeOffIcon className="w-3.5 h-3.5" />
@@ -172,10 +173,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between gap-3">
+              <div className="px-6 py-4 flex items-center justify-between gap-3" style={{ borderTop: '1px solid var(--border-color)' }}>
                 <button
                   onClick={handleClearAll}
-                  className="text-[11px] text-white/30 hover:text-red-400 transition-colors font-medium cursor-pointer"
+                  className="text-[11px] hover:text-red-400 transition-colors font-medium cursor-pointer" style={{ color: 'var(--text-faint)' }}
                 >
                   Clear all
                 </button>

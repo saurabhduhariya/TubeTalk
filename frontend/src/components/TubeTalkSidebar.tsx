@@ -6,6 +6,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { QuickActions } from './QuickActions';
 import { TypingIndicator } from './TypingIndicator';
+import { ChatHistory, type HistoryEntry } from './ChatHistory';
 
 interface Message {
   role: 'bot' | 'user';
@@ -21,10 +22,14 @@ interface TubeTalkSidebarProps {
   stopGeneration: () => void;
   clearChat: () => void;
   url: string;
+  historyEntries: HistoryEntry[];
+  onSelectVideo: (videoId: string) => void;
+  onDeleteHistory: (videoId: string) => void;
 }
 
-export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuestion, stopGeneration, clearChat, url }: TubeTalkSidebarProps) {
+export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuestion, stopGeneration, clearChat, url, historyEntries, onSelectVideo, onDeleteHistory }: TubeTalkSidebarProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [historyOpen, setHistoryOpen] = React.useState(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,11 +45,22 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
         damping: 25,
         opacity: { duration: 0.4 }
       }}
-      className="w-full h-full flex flex-col bg-[#050505] border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-      
-      {/* Subtle background glow effects removed for purely dark aesthetic */}
+      className="w-full h-full flex flex-col border-r shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+      style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}>
 
-      <ChatHeader url={url} clearChat={clearChat} />
+      <ChatHeader url={url} clearChat={clearChat} onToggleHistory={() => setHistoryOpen(!historyOpen)} />
+
+      {/* Chat History Overlay */}
+      <ChatHistory
+        isOpen={historyOpen}
+        entries={historyEntries}
+        onSelect={(videoId) => {
+          onSelectVideo(videoId);
+          setHistoryOpen(false);
+        }}
+        onDelete={onDeleteHistory}
+        onClose={() => setHistoryOpen(false)}
+      />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-6 pb-2 relative z-10 flex flex-col">
         <motion.div
@@ -80,7 +96,7 @@ export function TubeTalkSidebar({ chat, loading, question, setQuestion, askQuest
               className="flex items-end gap-3 mb-6">
               
               <div className="flex-shrink-0 mb-1">
-                <div className="w-8 h-8 rounded-full bg-glass-gradient border border-glass-border flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.1)]">
+                <div className="w-8 h-8 rounded-full bg-glass-gradient flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.1)]" style={{ borderColor: 'var(--border-color)', borderWidth: '1px' }}>
                   <div className="w-4 h-4 text-accent-cyan flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
                   </div>

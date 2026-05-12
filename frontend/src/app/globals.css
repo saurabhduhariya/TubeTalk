@@ -11,16 +11,82 @@
   --background-image-glass-gradient: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
 }
 
+/* ── Theme CSS Variables ── */
+:root {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: rgba(255, 255, 255, 0.9);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-faint: rgba(255, 255, 255, 0.2);
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-hover: rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-hover: rgba(255, 255, 255, 0.2);
+  --bot-bubble-from: rgba(255, 255, 255, 0.06);
+  --bot-bubble-to: rgba(255, 255, 255, 0.02);
+  --bot-bubble-border: rgba(255, 255, 255, 0.08);
+  --user-bubble-from: rgba(0, 212, 255, 0.15);
+  --user-bubble-to: rgba(167, 139, 250, 0.10);
+  --user-bubble-border: rgba(0, 212, 255, 0.20);
+  --input-bg: #0a0a0a;
+  --input-border: rgba(255, 255, 255, 0.08);
+  --input-focus-border: rgba(0, 212, 255, 0.3);
+  --input-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  --input-focus-shadow: 0 0 20px rgba(0, 212, 255, 0.1), inset 0 0 10px rgba(0, 212, 255, 0.05);
+  --code-bg: rgba(255, 255, 255, 0.1);
+  --modal-bg: #0a0a0a;
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --field-bg: rgba(255, 255, 255, 0.03);
+  --field-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(0, 0, 0, 0.03);
+  --bg-card-hover: rgba(0, 0, 0, 0.06);
+  --text-primary: rgba(0, 0, 0, 0.85);
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --text-muted: rgba(0, 0, 0, 0.4);
+  --text-faint: rgba(0, 0, 0, 0.15);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-hover: rgba(0, 0, 0, 0.2);
+  --bot-bubble-from: rgba(0, 0, 0, 0.04);
+  --bot-bubble-to: rgba(0, 0, 0, 0.02);
+  --bot-bubble-border: rgba(0, 0, 0, 0.08);
+  --user-bubble-from: rgba(0, 212, 255, 0.10);
+  --user-bubble-to: rgba(167, 139, 250, 0.08);
+  --user-bubble-border: rgba(0, 212, 255, 0.25);
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.1);
+  --input-focus-border: rgba(0, 212, 255, 0.4);
+  --input-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --input-focus-shadow: 0 0 20px rgba(0, 212, 255, 0.12), inset 0 0 10px rgba(0, 212, 255, 0.05);
+  --code-bg: rgba(0, 0, 0, 0.06);
+  --modal-bg: #ffffff;
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --field-bg: rgba(0, 0, 0, 0.03);
+  --field-border: rgba(0, 0, 0, 0.1);
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #050505;
-  color: white;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom Scrollbar for Chat Area */
@@ -32,11 +98,11 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-hover);
 }
 
 /* Hide scrollbar for quick actions but allow scroll */

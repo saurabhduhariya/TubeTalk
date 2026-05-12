@@ -19,7 +19,7 @@ export function TypingIndicator() {
     ease: 'easeInOut' as const
   };
   return (
-    <div className="flex items-center gap-1 px-3 py-2 bg-[#0a0a0a] border border-white/5 rounded-2xl rounded-tl-sm w-fit shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+    <div className="flex items-center gap-1 px-3 py-2 rounded-2xl rounded-tl-sm w-fit" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-card)' }}>
       {[0, 1, 2].map((index) =>
       <motion.div
         key={index}

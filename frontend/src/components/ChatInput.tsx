@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { SendIcon, MicIcon, SquareIcon } from 'lucide-react';
+import { SendIcon, SquareIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ChatInputProps {
@@ -16,21 +16,15 @@ export function ChatInput({ question, setQuestion, askQuestion, stopGeneration, 
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div className="px-6 pb-6 pt-2 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent">
+    <div className="px-6 pb-6 pt-2">
       <motion.div
         animate={{
-          borderColor: isFocused ?
-          'rgba(0, 212, 255, 0.3)' :
-          'rgba(255, 255, 255, 0.08)',
-          boxShadow: isFocused ?
-          '0 0 20px rgba(0, 212, 255, 0.1), inset 0 0 10px rgba(0, 212, 255, 0.05)' :
-          '0 4px 20px rgba(0,0,0,0.2)'
+          borderColor: isFocused ? 'var(--input-focus-border)' : 'var(--input-border)',
+          boxShadow: isFocused ? 'var(--input-focus-shadow)' : 'var(--input-shadow)',
         }}
-        className="relative flex items-end gap-2 p-2 bg-[#0a0a0a] rounded-2xl border transition-colors duration-300">
+        className="relative flex items-end gap-2 p-2 rounded-2xl border transition-colors duration-300"
+        style={{ backgroundColor: 'var(--input-bg)' }}>
         
-        <button className="p-2.5 text-white/40 hover:text-white/80 transition-colors rounded-xl hover:bg-white/5 mb-0.5 disabled:opacity-50">
-          <MicIcon className="w-5 h-5" />
-        </button>
 
         <textarea
           value={question}
@@ -45,7 +39,8 @@ export function ChatInput({ question, setQuestion, askQuestion, stopGeneration, 
           }}
           disabled={!url || loading}
           placeholder={url ? "Ask about this video..." : "Waiting for YouTube video..."}
-          className="flex-1 bg-transparent border-none outline-none text-white/90 placeholder:text-white/30 resize-none min-h-[44px] max-h-[120px] py-3 text-[15px] custom-scrollbar disabled:opacity-50"
+          className="flex-1 bg-transparent border-none outline-none resize-none min-h-[44px] max-h-[120px] py-3 text-[15px] custom-scrollbar disabled:opacity-50"
+          style={{ color: 'var(--text-primary)' }}
           rows={1} />
         
         {loading ? (
@@ -63,7 +58,8 @@ export function ChatInput({ question, setQuestion, askQuestion, stopGeneration, 
             disabled={!url || !question.trim()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`p-2.5 rounded-xl flex items-center justify-center mb-0.5 transition-all duration-300 ${question.trim() && url ? 'bg-gradient-to-br from-accent-cyan to-accent-purple text-white shadow-[0_0_15px_rgba(0,212,255,0.4)] cursor-pointer' : 'bg-white/5 text-white/30 cursor-not-allowed opacity-50'}`}
+            className={`p-2.5 rounded-xl flex items-center justify-center mb-0.5 transition-all duration-300 ${question.trim() && url ? 'bg-gradient-to-br from-accent-cyan to-accent-purple text-white shadow-[0_0_15px_rgba(0,212,255,0.4)] cursor-pointer' : 'bg-white/5 cursor-not-allowed opacity-50'}`}
+            style={{ color: question.trim() && url ? undefined : 'var(--text-muted)' }}
           >
             <SendIcon className="w-5 h-5 ml-0.5" />
           </motion.button>

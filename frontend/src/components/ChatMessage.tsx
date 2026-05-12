@@ -1,6 +1,5 @@
 "use client";
 import React from 'react';
-import { BotIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ChatMessageProps {
@@ -27,7 +26,7 @@ export function ChatMessage({ role, text, time }: ChatMessageProps) {
         return parts.map((part, i) => {
           if (part.startsWith('**') && part.endsWith('**')) {
             return (
-              <strong key={i} className="font-bold text-white">
+              <strong key={i} className="font-bold" style={{ color: 'var(--text-primary)' }}>
                 {part.slice(2, -2)}
               </strong>
             );
@@ -36,7 +35,8 @@ export function ChatMessage({ role, text, time }: ChatMessageProps) {
             return (
               <code
                 key={i}
-                className="px-1.5 py-0.5 rounded bg-white/10 text-accent-cyan text-[13px] font-medium"
+                className="px-1.5 py-0.5 rounded text-accent-cyan text-[13px] font-medium"
+                style={{ backgroundColor: 'var(--code-bg)' }}
               >
                 {part.slice(1, -1)}
               </code>
@@ -91,19 +91,20 @@ export function ChatMessage({ role, text, time }: ChatMessageProps) {
       >
         <div className={`flex flex-col w-full ${isBot ? 'items-start' : 'items-end'}`}>
           <div
-            className={`
-              ${
-                isBot
-                  ? 'px-4 py-3 bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] rounded-2xl rounded-tl-sm shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
-                  : 'px-4 py-3 bg-gradient-to-br from-accent-cyan/15 to-accent-purple/10 border border-accent-cyan/20 rounded-2xl rounded-tr-sm shadow-[0_4px_24px_rgba(0,212,255,0.08)]'
-              }
-            `}
+            className={`px-4 py-3 ${isBot ? 'rounded-2xl rounded-tl-sm' : 'rounded-2xl rounded-tr-sm'}`}
+            style={{
+              background: isBot
+                ? `linear-gradient(to bottom right, var(--bot-bubble-from), var(--bot-bubble-to))`
+                : `linear-gradient(to bottom right, var(--user-bubble-from), var(--user-bubble-to))`,
+              border: `1px solid ${isBot ? 'var(--bot-bubble-border)' : 'var(--user-bubble-border)'}`,
+              boxShadow: 'var(--shadow-card)',
+            }}
           >
-            <div className="text-[13px] leading-relaxed text-white/90">
+            <div className="text-[13px] leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               {renderText(text)}
             </div>
           </div>
-          <span className="text-[10px] text-white/25 mt-1.5 px-1 font-medium tracking-wider">
+          <span className="text-[10px] mt-1.5 px-1 font-medium tracking-wider" style={{ color: 'var(--text-faint)' }}>
             {time}
           </span>
         </div>
