@@ -12,3 +12,7 @@ langchain-tavily
 pinecone
 youtube-transcript-api
 yt-dlp
+pytest
+pytest-asyncio
+httpx
+slowapi

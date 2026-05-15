@@ -9,6 +9,7 @@ from app.models import ChatRequest, ChatResponse
 from app.graph.state import GraphState
 from app.graph.builder import rag_graph
 from app.services.video import get_video_metadata, get_video_comments
+from app.limiter import limiter
 
 router = APIRouter()
 
@@ -47,6 +48,7 @@ def _override_env_keys(request: Request):
 
 
 @router.post("/chat", response_model=ChatResponse)
+@limiter.limit("10/minute")
 async def chat_with_video(request: Request):
     """Run the Hybrid CRAG + Self-RAG pipeline and return the generated answer."""
     try:
